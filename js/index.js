@@ -59,6 +59,11 @@ document.addEventListener("alpine:init", () => {
     game: createGame(viewportSettings("hard")),
     difficulty: "hard",
     difficultyMenuOpen: false,
+    paused: false,
+    shortcutsOpen: false,
+    lastBoard: null,
+    firstRevealIndex: null,
+    keyboardHandler: null,
     generating: false,
     generationAttempts: 0,
     generationMessage: "Generating a solvable board…",
@@ -135,6 +140,8 @@ document.addEventListener("alpine:init", () => {
       if (!restored) this.startFreshGame("hard");
       else if (this.game.phase === GAME_PHASE.PLAYING) this.startTimer();
 
+      this.keyboardHandler = (event) => this.handleKeyboard(event);
+      window.addEventListener("keydown", this.keyboardHandler);
       this.beforeUnloadHandler = () => this.persistGame();
       window.addEventListener("beforeunload", this.beforeUnloadHandler);
     },
@@ -142,6 +149,7 @@ document.addEventListener("alpine:init", () => {
     destroy() {
       this.cancelGeneration();
       this.pauseTimer();
+      if (this.keyboardHandler) window.removeEventListener("keydown", this.keyboardHandler);
       if (this.beforeUnloadHandler) {
         window.removeEventListener("beforeunload", this.beforeUnloadHandler);
       }
@@ -196,6 +204,9 @@ document.addEventListener("alpine:init", () => {
     startFreshGame(difficulty = this.difficulty) {
       this.cancelGeneration();
       this.pauseTimer();
+      this.paused = false;
+      this.lastBoard = null;
+      this.firstRevealIndex = null;
       this.difficulty = difficulty;
       this.game = createGame(viewportSettings(difficulty));
       this.elapsedMs = 0;
@@ -216,15 +227,65 @@ document.addEventListener("alpine:init", () => {
     },
 
     restart() {
-      this.startFreshGame(this.difficulty);
+      if (this.lastBoard && this.firstRevealIndex !== null) {
+        this.cancelGeneration();
+        this.pauseTimer();
+        const ready = createGame({
+          columns: this.lastBoard.columns,
+          rows: this.lastBoard.rows,
+          mines: this.lastBoard.mineCount,
+          difficulty: this.difficulty,
+        });
+        const generated = installGeneratedBoard(ready, this.lastBoard);
+        this.game = revealCell(generated, this.firstRevealIndex).game;
+        this.elapsedMs = 0;
+        this.paused = false;
+        this.outcomeAnnouncement = "";
+        this.startTimer();
+        this.persistGame();
+      } else {
+        this.startFreshGame(this.difficulty);
+      }
       this.$nextTick(() => {
         this.$refs.board?.querySelector(".cell")?.focus();
       });
     },
 
+    togglePause() {
+      if (this.generating || this.resizePromptOpen || this.isFinished) return;
+      this.paused = !this.paused;
+      if (this.paused) this.pauseTimer();
+      else this.startTimer();
+      this.persistGame();
+    },
+
+    handleKeyboard(event) {
+      const target = event.target;
+      if (target?.matches?.("input, textarea, select, [contenteditable=true]")) return;
+      if (event.altKey || event.ctrlKey || event.metaKey) return;
+      const key = event.key.toLowerCase();
+      if (key === "escape") {
+        this.shortcutsOpen = false;
+        return;
+      }
+      if (key === "?" || (event.shiftKey && event.key === "/")) {
+        event.preventDefault();
+        this.shortcutsOpen = !this.shortcutsOpen;
+      } else if (!event.shiftKey && key === "n") {
+        event.preventDefault();
+        this.startFreshGame(this.difficulty);
+      } else if (!event.shiftKey && key === "r") {
+        event.preventDefault();
+        this.restart();
+      } else if (!event.shiftKey && key === "p") {
+        event.preventDefault();
+        this.togglePause();
+      }
+    },
+
     startTimer() {
       this.pauseTimer();
-      if (this.game.phase !== GAME_PHASE.PLAYING || this.generating) return;
+      if (this.paused || this.game.phase !== GAME_PHASE.PLAYING || this.generating) return;
       this.timerStartedAt = Date.now() - this.elapsedMs;
       this.timerHandle = window.setInterval(() => {
         this.elapsedMs = Math.max(0, Date.now() - this.timerStartedAt);
@@ -285,7 +346,7 @@ document.addEventListener("alpine:init", () => {
     },
 
     handleReveal(index) {
-      if (this.generating || this.resizePromptOpen || this.isFinished) return;
+      if (this.paused || this.generating || this.resizePromptOpen || this.isFinished) return;
       if (this.suppressClickIndex === index && Date.now() <= this.suppressClickUntil) {
         this.suppressClickIndex = null;
         this.suppressClickUntil = 0;
@@ -301,7 +362,7 @@ document.addEventListener("alpine:init", () => {
     },
 
     handleMark(index) {
-      if (this.generating || this.resizePromptOpen || this.isFinished) return;
+      if (this.paused || this.generating || this.resizePromptOpen || this.isFinished) return;
       if (this.game.cells[index].state === CELL_STATE.REVEALED) {
         this.applyAction(revealCell(this.game, index));
       } else {
@@ -321,7 +382,7 @@ document.addEventListener("alpine:init", () => {
     },
 
     validateBoard() {
-      if (this.generating || this.resizePromptOpen) return;
+      if (this.paused || this.generating || this.resizePromptOpen) return;
       this.applyAction(validateFlags(this.game));
     },
 
@@ -330,6 +391,7 @@ document.addEventListener("alpine:init", () => {
         event.pointerType === "mouse" ||
         event.button !== 0 ||
         !event.isPrimary ||
+        this.paused ||
         this.generating ||
         this.isFinished
       ) return;
@@ -447,6 +509,8 @@ document.addEventListener("alpine:init", () => {
       if (requestId !== this.requestId) return;
       this.finishWorker();
       try {
+        this.lastBoard = { ...board, cells: board.cells.map((cell) => ({ mine: cell.mine, adjacent: cell.adjacent })) };
+        this.firstRevealIndex = firstIndex;
         this.game = installGeneratedBoard(this.game, board);
         this.elapsedMs = 0;
         const result = revealCell(this.game, firstIndex);

@@ -82,6 +82,25 @@
         </div>
       </div>
 
+      <div class="generation-overlay" x-show="paused" role="status">
+        <div class="generation-card">
+          <strong>Paused</strong>
+          <p>Press P or select Resume to continue.</p>
+          <button type="button" class="button button--quiet" @click="togglePause()">Resume</button>
+        </div>
+      </div>
+
+      <div class="modal-backdrop" x-show="shortcutsOpen" x-transition.opacity.duration.150ms @click.self="shortcutsOpen = false">
+        <section class="resize-dialog" role="dialog" aria-modal="true" aria-labelledby="shortcuts-title">
+          <h2 id="shortcuts-title">Keyboard shortcuts</h2>
+          <p><kbd>N</kbd> New board</p>
+          <p><kbd>R</kbd> Replay same board</p>
+          <p><kbd>P</kbd> Pause / resume</p>
+          <p><kbd>?</kbd> Show shortcuts</p>
+          <div class="dialog-actions"><button type="button" class="button button--quiet" @click="shortcutsOpen = false">Close</button></div>
+        </section>
+      </div>
+
       <div
         class="modal-backdrop"
         x-show="resizePromptOpen"
