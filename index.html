@@ -95,6 +95,7 @@
           <h2 id="shortcuts-title">Keyboard shortcuts</h2>
           <p><kbd>N</kbd> New board</p>
           <p><kbd>R</kbd> Replay same board</p>
+          <p><kbd>U</kbd> Undo (3 per board)</p>
           <p><kbd>P</kbd> Pause / resume</p>
           <p><kbd>?</kbd> Show shortcuts</p>
           <div class="dialog-actions"><button type="button" class="button button--quiet" @click="shortcutsOpen = false">Close</button></div>
@@ -189,6 +190,17 @@
             @click="validateBoard()"
           >
             <span class="fa fa-smile-o" aria-hidden="true"></span>
+          </button>
+          <button
+            type="button"
+            class="toolbar-button icon-button"
+            x-show="isActive && game.generated"
+            :disabled="undosRemaining === 0"
+            :aria-label="`Undo last move (${undosRemaining} remaining)`"
+            :title="`Undo (${undosRemaining} remaining)`"
+            @click="undo()"
+          >
+            <span class="fa fa-undo" aria-hidden="true"></span>
           </button>
           <button
             type="button"
