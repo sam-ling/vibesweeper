@@ -254,9 +254,6 @@ document.addEventListener("alpine:init", () => {
       } else {
         this.startFreshGame(this.difficulty);
       }
-      this.$nextTick(() => {
-        this.$refs.board?.querySelector(".cell")?.focus();
-      });
     },
 
     undo() {
