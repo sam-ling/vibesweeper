@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#efefec">
+  <title>Bugsweeper — no-guess Minesweeper</title>
+  <meta name="description" content="Find every bug in a full-screen, no-guess Minesweeper game.">
+  <meta property="og:url" content="https://casualhacks.net/bugsweeper/">
+  <meta property="og:title" content="Bugsweeper">
+  <meta property="og:description" content="A full-screen, no-guess Minesweeper game with bugs.">
+  <meta property="og:image" content="https://casualhacks.net/bugsweeper/img/logo-228x228.png">
+  <link rel="stylesheet" href="./css/font-awesome.min.css">
+  <link rel="stylesheet" href="./css/bugsweeper.css">
+  <link rel="apple-touch-icon" href="./img/logo-57x57.png">
+  <link rel="apple-touch-icon" sizes="72x72" href="./img/logo-72x72.png">
+  <link rel="apple-touch-icon" sizes="114x114" href="./img/logo-114x114.png">
+  <link rel="icon" type="image/png" href="./img/logo-32x32.png">
+  <script type="module" src="./js/index.js"></script>
+</head>
+<body>
+  <div
+    class="app"
+    x-data="bugsweeper"
+    x-cloak
+    @resize.window.debounce.200ms="handleResize()"
+    @keydown.escape.window="difficultyMenuOpen = false"
+  >
+    <main class="play-area">
+      <div class="board-wrap">
+        <div
+          class="board"
+          x-ref="board"
+          role="grid"
+          :aria-rowcount="game.rows"
+          :aria-colcount="game.columns"
+          :aria-busy="generating"
+          aria-label="Bugsweeper board. Tap or left-click to reveal. Long-press or right-click to mark a bug. Use arrow keys to move between cells and M to mark."
+          :style="boardStyle()"
+          @contextmenu.prevent
+        >
+          <template x-for="(cell, index) in game.cells" :key="index">
+            <button
+              class="cell"
+              type="button"
+              role="gridcell"
+              :data-cell-index="index"
+              :class="cellClasses(cell, index)"
+              :aria-label="cellLabel(cell, index)"
+              :aria-disabled="isFinished || generating"
+              @click="handleReveal(index)"
+              @contextmenu.prevent="handleContextMenu(index)"
+              @pointerdown="pointerDown($event, index)"
+              @pointermove="pointerMove($event)"
+              @pointerup="pointerEnd($event)"
+              @pointercancel="pointerEnd($event)"
+              @keydown.m.prevent="handleMark(index)"
+              @keydown.arrow-left.prevent="focusCell(index, -1, 0)"
+              @keydown.arrow-right.prevent="focusCell(index, 1, 0)"
+              @keydown.arrow-up.prevent="focusCell(index, 0, -1)"
+              @keydown.arrow-down.prevent="focusCell(index, 0, 1)"
+            >
+              <span class="fa fa-flag" x-show="showFlag(cell)" aria-hidden="true"></span>
+              <span class="fa fa-bug" x-show="showBug(cell)" aria-hidden="true"></span>
+              <span x-show="showClue(cell)" x-text="cell.adjacent" aria-hidden="true"></span>
+            </button>
+          </template>
+        </div>
+      </div>
+
+      <div
+        class="generation-overlay"
+        :class="{ 'generation-overlay--error': generationError }"
+        x-show="overlayVisible"
+        x-transition.opacity.duration.150ms
+        role="status"
+        aria-live="polite"
+      >
+        <div class="generation-card">
+          <span class="spinner" x-show="!generationError" aria-hidden="true"></span>
+          <span x-text="generationMessage"></span>
+        </div>
+      </div>
+
+      <div
+        class="modal-backdrop"
+        x-show="resizePromptOpen"
+        x-transition.opacity.duration.150ms
+        @click.self="dismissResizePrompt()"
+      >
+        <section class="resize-dialog" role="dialog" aria-modal="true" aria-labelledby="resize-title">
+          <h2 id="resize-title">Resize the board?</h2>
+          <p>The viewport changed. Start a new board sized to fit it?</p>
+          <div class="dialog-actions">
+            <button type="button" class="button button--quiet" @click="dismissResizePrompt()">Keep game</button>
+            <button type="button" class="button button--danger" x-ref="resizeReload" @click="acceptResizePrompt()">
+              <span class="fa fa-refresh" aria-hidden="true"></span>
+              New board
+            </button>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer
+      class="toolbar"
+      :class="{
+        'toolbar--won': game.phase === 'won',
+        'toolbar--lost': game.phase === 'lost'
+      }"
+    >
+      <div class="toolbar-inner">
+        <div class="toolbar-slot difficulty" @click.outside="difficultyMenuOpen = false">
+          <button
+            type="button"
+            class="toolbar-button difficulty-button"
+            aria-haspopup="menu"
+            :aria-expanded="difficultyMenuOpen"
+            @click="difficultyMenuOpen = !difficultyMenuOpen"
+          >
+            <span x-text="difficultyLabel"></span>
+            <span class="fa fa-angle-up" aria-hidden="true"></span>
+          </button>
+          <div class="difficulty-menu" role="menu" x-show="difficultyMenuOpen" x-transition.origin.bottom>
+            <template x-for="option in difficultyOptions" :key="option.value">
+              <button
+                type="button"
+                class="difficulty-option"
+                role="menuitemradio"
+                :class="{ 'difficulty-option--selected': option.value === difficulty }"
+                :aria-checked="option.value === difficulty"
+                @click="chooseDifficulty(option.value)"
+              >
+                <span x-text="option.label"></span>
+                <small x-text="option.percentage"></small>
+              </button>
+            </template>
+          </div>
+        </div>
+
+        <div class="toolbar-slot">
+          <button
+            type="button"
+            class="toolbar-button icon-button"
+            x-show="soundAvailable && isActive"
+            :aria-label="soundOn ? 'Mute sounds' : 'Enable sounds'"
+            :title="soundOn ? 'Mute sounds' : 'Enable sounds'"
+            @click="toggleSound()"
+          >
+            <span class="fa" :class="soundOn ? 'fa-volume-up' : 'fa-volume-off'" aria-hidden="true"></span>
+          </button>
+        </div>
+
+        <div class="toolbar-slot">
+          <span
+            class="toolbar-label flag-label"
+            x-show="isActive && (flagsRemaining > 0 || !game.generated)"
+            :aria-label="`${flagsRemaining} marks remaining`"
+            title="Right-click or long-press a cell to mark a bug"
+          >
+            <span x-text="flagsRemaining"></span>
+            <span class="fa fa-flag" aria-hidden="true"></span>
+          </span>
+          <button
+            type="button"
+            class="toolbar-button icon-button validate-button"
+            x-show="isActive && game.generated && flagsRemaining === 0"
+            aria-label="Check all marked bugs"
+            title="Check all marked bugs"
+            @click="validateBoard()"
+          >
+            <span class="fa fa-smile-o" aria-hidden="true"></span>
+          </button>
+          <button
+            type="button"
+            class="toolbar-button icon-button"
+            x-show="isFinished"
+            aria-label="Start a new board"
+            title="Start a new board"
+            @click="restart()"
+          >
+            <span class="fa fa-refresh" aria-hidden="true"></span>
+          </button>
+        </div>
+
+        <div class="toolbar-slot">
+          <output class="toolbar-label timer" :aria-label="game.phase === 'lost' ? 'Correctly marked bugs' : 'Elapsed time'" x-text="timerLabel"></output>
+        </div>
+      </div>
+    </footer>
+
+    <p class="visually-hidden" aria-live="assertive" x-text="outcomeAnnouncement"></p>
+  </div>
+</body>
+</html>

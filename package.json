@@ -1,0 +1,8 @@
+{
+  "name": "bugsweeper",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node js/bugsweeper.test.js"
+  }
+}
