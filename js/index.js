@@ -241,6 +241,7 @@ document.addEventListener("alpine:init", () => {
         this.elapsedMs = 0;
         this.paused = false;
         this.outcomeAnnouncement = "";
+        this.startTimer();
         this.persistGame();
       } else {
         this.startFreshGame(this.difficulty);
@@ -361,7 +362,7 @@ document.addEventListener("alpine:init", () => {
     },
 
     handleMark(index) {
-      if (this.generating || this.resizePromptOpen || this.isFinished) return;
+      if (this.paused || this.generating || this.resizePromptOpen || this.isFinished) return;
       if (this.game.cells[index].state === CELL_STATE.REVEALED) {
         this.applyAction(revealCell(this.game, index));
       } else {
@@ -381,7 +382,7 @@ document.addEventListener("alpine:init", () => {
     },
 
     validateBoard() {
-      if (this.generating || this.resizePromptOpen) return;
+      if (this.paused || this.generating || this.resizePromptOpen) return;
       this.applyAction(validateFlags(this.game));
     },
 
@@ -390,6 +391,7 @@ document.addEventListener("alpine:init", () => {
         event.pointerType === "mouse" ||
         event.button !== 0 ||
         !event.isPrimary ||
+        this.paused ||
         this.generating ||
         this.isFinished
       ) return;
