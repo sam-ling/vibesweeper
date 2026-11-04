@@ -84,7 +84,8 @@ The consequence of maximizing the grid is that rotation or a substantial resize 
 ## Keyboard controls
 
 - **N** starts a fresh board at the current difficulty.
-- **R** replays the current generated board with the same bug locations and a reset timer.
+- **R** replays the current generated board with the same bug locations and a reset timer, clearing all moves and flags.
+- **U** undoes the most recent move (reveal, mark, or chord) up to three times per board. Undo restores the prior board and timer; credits reset on **N** or **R**.
 - **P** pauses or resumes an active board. Pause freezes elapsed time and blocks board actions.
 - **?** opens the keyboard shortcut reference; **Escape** closes it.
 
