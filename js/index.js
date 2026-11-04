@@ -74,6 +74,8 @@ document.addEventListener("alpine:init", () => {
     soundAvailable: false,
     soundOn: true,
     elapsedMs: 0,
+    undoHistory: [],
+    undosRemaining: 3,
     cellSize: preferredCellSize(),
     outcomeAnnouncement: "",
     worker: null,
@@ -207,6 +209,8 @@ document.addEventListener("alpine:init", () => {
       this.paused = false;
       this.lastBoard = null;
       this.firstRevealIndex = null;
+      this.undoHistory = [];
+      this.undosRemaining = 3;
       this.difficulty = difficulty;
       this.game = createGame(viewportSettings(difficulty));
       this.elapsedMs = 0;
@@ -238,6 +242,8 @@ document.addEventListener("alpine:init", () => {
         });
         const generated = installGeneratedBoard(ready, this.lastBoard);
         this.game = revealCell(generated, this.firstRevealIndex).game;
+        this.undoHistory = [];
+        this.undosRemaining = 3;
         this.elapsedMs = 0;
         this.paused = false;
         this.outcomeAnnouncement = "";
@@ -249,6 +255,20 @@ document.addEventListener("alpine:init", () => {
       this.$nextTick(() => {
         this.$refs.board?.querySelector(".cell")?.focus();
       });
+    },
+
+    undo() {
+      if (this.undosRemaining <= 0 || this.undoHistory.length === 0 || this.generating || this.resizePromptOpen) return;
+      const wasPaused = this.paused;
+      this.pauseTimer();
+      const snapshot = this.undoHistory.pop();
+      this.game = snapshot.game;
+      this.elapsedMs = snapshot.elapsedMs;
+      this.outcomeAnnouncement = "";
+      this.undosRemaining -= 1;
+      this.paused = wasPaused;
+      if (!this.paused && this.game.phase === GAME_PHASE.PLAYING) this.startTimer();
+      this.persistGame();
     },
 
     togglePause() {
@@ -277,6 +297,9 @@ document.addEventListener("alpine:init", () => {
       } else if (!event.shiftKey && key === "r") {
         event.preventDefault();
         this.restart();
+      } else if (!event.shiftKey && key === "u") {
+        event.preventDefault();
+        this.undo();
       } else if (!event.shiftKey && key === "p") {
         event.preventDefault();
         this.togglePause();
@@ -324,6 +347,7 @@ document.addEventListener("alpine:init", () => {
     applyAction(result) {
       if (!result.changed) return;
       const previousPhase = this.game.phase;
+      this.undoHistory.push({ game: structuredClone(this.game), elapsedMs: this.elapsedMs });
       this.game = result.game;
 
       if (this.game.phase !== previousPhase && this.isFinished) {
@@ -510,6 +534,8 @@ document.addEventListener("alpine:init", () => {
       this.finishWorker();
       try {
         this.lastBoard = { ...board, cells: board.cells.map((cell) => ({ mine: cell.mine, adjacent: cell.adjacent })) };
+        this.undoHistory = [];
+        this.undosRemaining = 3;
         this.firstRevealIndex = firstIndex;
         this.game = installGeneratedBoard(this.game, board);
         this.elapsedMs = 0;
