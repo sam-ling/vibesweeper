@@ -474,3 +474,16 @@ button {
     animation-iteration-count: 1 !important;
   }
 }
+
+
+/* Quiet build/version indicator, kept outside the game controls. */
+.app-version {
+  position: fixed;
+  right: 8px;
+  bottom: 3px;
+  z-index: 60;
+  color: #777770;
+  font: 10px/1.2 system-ui, sans-serif;
+  opacity: 0.7;
+  pointer-events: none;
+}

@@ -1,4 +1,5 @@
 import "./alpine.min.js";
+import { APP_VERSION } from "./version.js";
 import {
   CELL_STATE,
   DIFFICULTIES,
@@ -56,6 +57,7 @@ function canPlaySound() {
 
 document.addEventListener("alpine:init", () => {
   window.Alpine.data("bugsweeper", () => ({
+    appVersion: APP_VERSION,
     game: createGame(viewportSettings("hard")),
     difficulty: "hard",
     difficultyMenuOpen: false,
