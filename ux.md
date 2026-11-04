@@ -79,3 +79,13 @@ There is no mid-game restart button. A normal restart is offered after the outco
 The application occupies the viewport and does not scroll. A 50 px footer is fixed to the bottom; the board is centered in the space above it. Grid dimensions are calculated when a new game begins, using roughly 45 px cells on desktop and 44 px cells when either viewport dimension is below 500 px. Mobile cells are therefore kept near the recommended touch-target size rather than shrinking the entire desktop board to fit.
 
 The consequence of maximizing the grid is that rotation or a substantial resize cannot merely reflow the same board. A width or height change greater than 50 px pauses the timer and asks whether to reload the game. Confirming starts a new board sized for the new viewport; dismissing preserves the existing board. Small viewport fluctuations are ignored, which avoids needless interruptions from browser chrome appearing and disappearing.
+
+
+## Keyboard controls
+
+- **N** starts a fresh board at the current difficulty.
+- **R** replays the current generated board with the same bug locations and a reset timer.
+- **P** pauses or resumes an active board. Pause freezes elapsed time and blocks board actions.
+- **?** opens the keyboard shortcut reference; **Escape** closes it.
+
+Shortcuts are ignored while typing in form controls.
