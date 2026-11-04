@@ -7,6 +7,7 @@ import {
   calculateBoardSettings,
   correctFlagCount,
   createGame,
+  cloneGame,
   deserializeGame,
   installGeneratedBoard,
   remainingFlags,
@@ -346,7 +347,7 @@ document.addEventListener("alpine:init", () => {
     applyAction(result) {
       if (!result.changed) return;
       const previousPhase = this.game.phase;
-      this.undoHistory.push({ game: structuredClone(this.game), elapsedMs: this.elapsedMs });
+      this.undoHistory.push({ game: cloneGame(this.game), elapsedMs: this.elapsedMs });
       if (this.undoHistory.length > 3) this.undoHistory.shift();
       this.game = result.game;
 
