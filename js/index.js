@@ -348,6 +348,7 @@ document.addEventListener("alpine:init", () => {
       if (!result.changed) return;
       const previousPhase = this.game.phase;
       this.undoHistory.push({ game: structuredClone(this.game), elapsedMs: this.elapsedMs });
+      if (this.undoHistory.length > 3) this.undoHistory.shift();
       this.game = result.game;
 
       if (this.game.phase !== previousPhase && this.isFinished) {
