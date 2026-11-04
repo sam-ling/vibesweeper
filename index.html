@@ -4,10 +4,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#efefec">
-  <title>Bugsweeper — no-guess Minesweeper</title>
+  <title>Vibesweeper — no-guess Minesweeper</title>
   <meta name="description" content="Find every bug in a full-screen, no-guess Minesweeper game.">
   <meta property="og:url" content="https://casualhacks.net/bugsweeper/">
-  <meta property="og:title" content="Bugsweeper">
+  <meta property="og:title" content="Vibesweeper">
   <meta property="og:description" content="A full-screen, no-guess Minesweeper game with bugs.">
   <meta property="og:image" content="https://casualhacks.net/bugsweeper/img/logo-228x228.png">
   <link rel="stylesheet" href="./css/font-awesome.min.css">
@@ -218,6 +218,7 @@
           <output class="toolbar-label timer" :aria-label="game.phase === 'lost' ? 'Correctly marked bugs' : 'Elapsed time'" x-text="timerLabel"></output>
         </div>
       </div>
+      <div class="keyboard-hints" aria-label="Keyboard shortcuts">N New · R Replay · U Undo · P Pause · ? Help</div>
     </footer>
 
     <p class="visually-hidden" aria-live="assertive" x-text="outcomeAnnouncement"></p>

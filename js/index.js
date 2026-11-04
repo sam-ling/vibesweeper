@@ -18,7 +18,7 @@ import {
 } from "./bugsweeper.js";
 
 const STORAGE_KEY = "bugsweeper:game:v2";
-const FOOTER_HEIGHT = 50;
+const FOOTER_HEIGHT = 70;
 const RESIZE_THRESHOLD = 50;
 const LONG_PRESS_MS = 550;
 const MOVE_TOLERANCE = 12;
