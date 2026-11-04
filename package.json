@@ -5,5 +5,5 @@
   "scripts": {
     "test": "node js/bugsweeper.test.js"
   },
-  "version": "1.0.1"
+  "version": "1.0.2"
 }
