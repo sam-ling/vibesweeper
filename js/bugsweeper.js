@@ -19,8 +19,8 @@ export const GAME_PHASE = Object.freeze({
 });
 
 export const DIFFICULTIES = Object.freeze({
-  easy: Object.freeze({ label: "Easy", density: 0.1 }),
-  medium: Object.freeze({ label: "Medium", density: 0.15 }),
+  easy: Object.freeze({ label: "Easy", density: 0.14 }),
+  medium: Object.freeze({ label: "Medium", density: 0.17 }),
   hard: Object.freeze({ label: "Hard", density: 0.2 }),
   insane: Object.freeze({ label: "Insane", density: 0.25 }),
 });
