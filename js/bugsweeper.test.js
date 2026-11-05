@@ -300,12 +300,23 @@ function testLogicDifficultyIsIndependentAndPersisted() {
   assert.throws(() => generateSolvableBoard(settings(4, 4, 3), 5, { logicDifficulty: "impossible", maxAttempts: 1 }), /Unknown logic/);
 }
 
+
+function testSolverReportsDifficultyMetrics() {
+  const trivial = createBoard(settings(2, 2, 1), [3]);
+  const analysis = analyzeSolvability(trivial, 0);
+  assert.equal(analysis.solvable, true);
+  assert.ok(analysis.logicLevel >= 1 && analysis.logicLevel <= 4);
+  assert.ok(Number.isInteger(analysis.inferenceCount));
+  assert.ok(Number.isInteger(analysis.largestComponent));
+}
+
 const tests = [
   testViewportDimensionsAndMineCounts,
   testAdjacencyValuesAndNeighbors,
   testDeterministicCandidateGeneration,
   testDeterministicVerifiedGeneration,
   testLogicDifficultyIsIndependentAndPersisted,
+  testSolverReportsDifficultyMetrics,
   testFirstRevealAndOpeningNeighborSafety,
   testSolverAcceptanceAndRejectionWithoutMutation,
   testModelOperationsDoNotLeakMutations,
