@@ -538,7 +538,7 @@ export function analyzeSolvability(board, firstIndex, options = {}) {
   function result(solvable, valid, exhaustive, frontier = []) {
     return {
       solvable,
-      logicLevel: inferenceCount === 0 ? 1 : largestComponent <= 6 ? 2 : largestComponent <= 10 ? 3 : 4,
+      logicLevel: inferenceCount <= 1 ? 1 : largestComponent <= 6 ? 2 : largestComponent <= 10 ? 3 : 4,
       inferenceCount,
       largestComponent,
       valid,
@@ -585,6 +585,7 @@ export function analyzeSolvability(board, firstIndex, options = {}) {
     }
 
     if (remainingMines === 0 || remainingMines === unknown.length) {
+      inferenceCount += 1;
       for (const index of unknown) {
         if (remainingMines === 0) {
           if (!revealKnownSafe(index)) return result(false, false, true);
@@ -601,6 +602,7 @@ export function analyzeSolvability(board, firstIndex, options = {}) {
 
     for (const constraint of built.constraints) {
       if (constraint.mines !== 0 && constraint.mines !== constraint.cells.length) continue;
+      inferenceCount += 1;
       for (const index of constraint.cells) {
         if (states[index] !== UNKNOWN) continue;
         madeProgress = true;
@@ -614,7 +616,6 @@ export function analyzeSolvability(board, firstIndex, options = {}) {
     if (madeProgress) continue;
     if (built.constraints.length === 0) return result(false, true, true);
 
-    inferenceCount += 1;
     const inference = inferForcedCells(
       built.constraints,
       states,
