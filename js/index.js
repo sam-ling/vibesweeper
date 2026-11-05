@@ -20,6 +20,7 @@ import {
 const STORAGE_KEY = "bugsweeper:game:v2";
 const SOUND_STORAGE_KEY = "vibesweeper:sound:v1";
 const BOARD_SIZE_STORAGE_KEY = "vibesweeper:size:v1";
+const LOGIC_STORAGE_KEY = "vibesweeper:logic:v1";
 const FOOTER_HEIGHT = 112;
 const RESIZE_THRESHOLD = 50;
 const LONG_PRESS_MS = 550;
@@ -139,9 +140,11 @@ document.addEventListener("alpine:init", () => {
       try {
         this.soundOn = this.soundAvailable && window.localStorage.getItem(SOUND_STORAGE_KEY) === "on";
         this.boardSize = window.localStorage.getItem(BOARD_SIZE_STORAGE_KEY) || "L";
+        this.logicDifficulty = window.localStorage.getItem(LOGIC_STORAGE_KEY) || "beginner";
       } catch {
         this.soundOn = false;
         this.boardSize = "L";
+        this.logicDifficulty = "beginner";
       }
       if (this.soundAvailable) {
         Object.entries(SOUND_PATHS).forEach(([name, path]) => {
@@ -254,6 +257,7 @@ document.addEventListener("alpine:init", () => {
     chooseLogic(value) {
       if (!["beginner","intermediate","advanced","expert"].includes(value)) return;
       this.logicDifficulty = value;
+      try { window.localStorage.setItem(LOGIC_STORAGE_KEY, value); } catch {}
       this.startFreshGame(this.density);
     },
 
