@@ -429,8 +429,10 @@ function inferForcedCells(constraints, states, remainingMines, maximumNodes) {
   const budget = { remaining: maximumNodes };
   const results = [];
   const frontier = new Set();
+  let largestComponent = 0;
 
   for (const component of components) {
+    largestComponent = Math.max(largestComponent, component.cells.length);
     component.cells.forEach((index) => frontier.add(index));
     const result = enumerateComponent(component, budget);
     if (result.aborted) {
@@ -518,7 +520,7 @@ function inferForcedCells(constraints, states, remainingMines, maximumNodes) {
     });
   });
 
-  return { valid: true, aborted: false, safe, mines, frontier: [...frontier] };
+  return { valid: true, aborted: false, safe, mines, frontier: [...frontier], largestComponent };
 }
 
 export function analyzeSolvability(board, firstIndex, options = {}) {
@@ -529,10 +531,15 @@ export function analyzeSolvability(board, firstIndex, options = {}) {
   const states = new Uint8Array(board.cells.length);
   const revealed = new Uint8Array(board.cells.length);
   let revealedSafeCount = 0;
+  let inferenceCount = 0;
+  let largestComponent = 0;
 
   function result(solvable, valid, exhaustive, frontier = []) {
     return {
       solvable,
+      logicLevel: inferenceCount === 0 ? 1 : largestComponent <= 6 ? 2 : largestComponent <= 10 ? 3 : 4,
+      inferenceCount,
+      largestComponent,
       valid,
       exhaustive,
       states,
@@ -606,12 +613,14 @@ export function analyzeSolvability(board, firstIndex, options = {}) {
     if (madeProgress) continue;
     if (built.constraints.length === 0) return result(false, true, true);
 
+    inferenceCount += 1;
     const inference = inferForcedCells(
       built.constraints,
       states,
       remainingMines,
       maximumNodes,
     );
+    largestComponent = Math.max(largestComponent, inference.largestComponent || 0);
     if (!inference.valid) return result(false, false, !inference.aborted, inference.frontier);
     if (inference.aborted) return result(false, true, false, inference.frontier);
 
@@ -742,6 +751,10 @@ export function generateSolvableBoard(settings, firstIndex, options = {}) {
   const onProgress = options.onProgress;
   const maximumAttempts = options.maxAttempts ?? 20_000;
   const repairAfter = options.repairAfter ?? 32;
+  const logicDifficulty = options.logicDifficulty ?? "beginner";
+  const logicLevels = { beginner: 1, intermediate: 2, advanced: 3, expert: 4 };
+  if (!logicLevels[logicDifficulty]) throw new RangeError("Unknown logic difficulty.");
+  const meetsLogic = (board) => { const analysis = analyzeSolvability(board, firstIndex); return analysis.solvable && analysis.logicLevel === logicLevels[logicDifficulty]; };
   if (typeof rng !== "function") throw new TypeError("The RNG must be a function.");
   if (!isIntegerInRange(maximumAttempts, 1, 1_000_000)) {
     throw new RangeError("Generation attempt limit is invalid.");
@@ -752,16 +765,16 @@ export function generateSolvableBoard(settings, firstIndex, options = {}) {
     const candidate = attempt % 64 === 0
       ? createPackedCandidate(settings, firstIndex, Math.floor(attempt / 64) - 1)
       : createCandidateBoard(settings, firstIndex, rng);
-    if (isSolvableWithoutGuessing(candidate, firstIndex)) return candidate;
+    if (meetsLogic(candidate)) return candidate;
 
     if (attempt >= repairAfter) {
       const repaired = repairCandidate(candidate, firstIndex);
-      if (repaired) return repaired;
+      if (repaired && meetsLogic(repaired)) return repaired;
     }
   }
 
   throw new GenerationError(
-    `Could not create a no-guess board after ${maximumAttempts} attempts.`,
+    `Could not create a ${logicDifficulty} logic board after ${maximumAttempts} attempts.`,
   );
 }
 
