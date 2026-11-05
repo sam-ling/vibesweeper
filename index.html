@@ -60,7 +60,7 @@
               @keydown.arrow-up.prevent="focusCell(index, 0, -1)"
               @keydown.arrow-down.prevent="focusCell(index, 0, 1)"
             >
-              <span class="fa fa-flag" x-show="showFlag(cell)" aria-hidden="true"></span>
+              <span x-show="showFlag(cell)" aria-hidden="true">🤙</span>
               <span x-show="showBug(cell)" x-text="bugEmoji(cell, index)" aria-hidden="true"></span>
               <span x-show="showClue(cell)" x-text="cell.adjacent" aria-hidden="true"></span>
             </button>
