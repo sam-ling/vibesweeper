@@ -74,6 +74,7 @@ export function calculateBoardSettings(
   viewportWidth,
   playAreaHeight,
   difficulty = "hard",
+  boardSize = "L",
 ) {
   if (!DIFFICULTIES[difficulty]) {
     throw new RangeError(`Unknown difficulty: ${difficulty}`);
@@ -82,14 +83,21 @@ export function calculateBoardSettings(
     throw new RangeError("Viewport dimensions must be positive.");
   }
 
-  const compact = viewportWidth < 500 || playAreaHeight < 500;
-  const cellSize = compact ? 44 : 45;
-  const gap = 2;
-  const padding = compact ? 0 : 24;
-  const usableWidth = Math.max(0, viewportWidth - padding);
-  const usableHeight = Math.max(0, playAreaHeight - padding);
-  const columns = Math.max(2, Math.floor((usableWidth + gap) / (cellSize + gap)));
-  const rows = Math.max(2, Math.floor((usableHeight + gap) / (cellSize + gap)));
+  const fixedSizes = { S: [8, 8], M: [12, 12], XL: [20, 20], XXL: [24, 24] };
+  if (boardSize !== "L" && !fixedSizes[boardSize]) throw new RangeError("Unknown board size: " + boardSize);
+  let columns, rows;
+  if (boardSize === "L") {
+    const compact = viewportWidth < 500 || playAreaHeight < 500;
+    const cellSize = compact ? 44 : 45;
+    const gap = 2;
+    const padding = compact ? 0 : 24;
+    const usableWidth = Math.max(0, viewportWidth - padding);
+    const usableHeight = Math.max(0, playAreaHeight - padding);
+    columns = Math.max(2, Math.floor((usableWidth + gap) / (cellSize + gap)));
+    rows = Math.max(2, Math.floor((usableHeight + gap) / (cellSize + gap)));
+  } else {
+    [columns, rows] = fixedSizes[boardSize];
+  }
   const cellCount = columns * rows;
   const mines = Math.min(
     cellCount - 1,
