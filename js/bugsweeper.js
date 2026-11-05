@@ -197,7 +197,6 @@ export function createGame(settings) {
     rows: settings.rows,
     mineCount: settings.mines,
     difficulty: DIFFICULTIES[settings.difficulty] ? settings.difficulty : "hard",
-    logicDifficulty: ["beginner", "intermediate", "advanced", "expert"].includes(settings.logicDifficulty) ? settings.logicDifficulty : "beginner",
     generated: false,
     phase: GAME_PHASE.READY,
     explodedIndex: null,
@@ -532,16 +531,10 @@ export function analyzeSolvability(board, firstIndex, options = {}) {
   const states = new Uint8Array(board.cells.length);
   const revealed = new Uint8Array(board.cells.length);
   let revealedSafeCount = 0;
-  let inferenceCount = 0;
-  let largestComponent = 0;
-  let globalCountDeductions = 0;
 
   function result(solvable, valid, exhaustive, frontier = []) {
     return {
       solvable,
-      logicLevel: globalCountDeductions > 0 || largestComponent > 10 ? 4 : largestComponent > 6 ? 3 : inferenceCount > 1 ? 2 : 1,
-      inferenceCount,
-      largestComponent,
       valid,
       exhaustive,
       states,
@@ -586,8 +579,6 @@ export function analyzeSolvability(board, firstIndex, options = {}) {
     }
 
     if (remainingMines === 0 || remainingMines === unknown.length) {
-      inferenceCount += 1;
-      globalCountDeductions += 1;
       for (const index of unknown) {
         if (remainingMines === 0) {
           if (!revealKnownSafe(index)) return result(false, false, true);
@@ -604,7 +595,6 @@ export function analyzeSolvability(board, firstIndex, options = {}) {
 
     for (const constraint of built.constraints) {
       if (constraint.mines !== 0 && constraint.mines !== constraint.cells.length) continue;
-      inferenceCount += 1;
       for (const index of constraint.cells) {
         if (states[index] !== UNKNOWN) continue;
         madeProgress = true;
@@ -624,8 +614,6 @@ export function analyzeSolvability(board, firstIndex, options = {}) {
       remainingMines,
       maximumNodes,
     );
-    largestComponent = Math.max(largestComponent, inference.largestComponent || 0);
-    if (inference.safe.length || inference.mines.length) inferenceCount += 1;
     if (!inference.valid) return result(false, false, !inference.aborted, inference.frontier);
     if (inference.aborted) return result(false, true, false, inference.frontier);
 
@@ -756,10 +744,7 @@ export function generateSolvableBoard(settings, firstIndex, options = {}) {
   const onProgress = options.onProgress;
   const maximumAttempts = options.maxAttempts ?? 20_000;
   const repairAfter = options.repairAfter ?? 32;
-  const logicDifficulty = options.logicDifficulty ?? "beginner";
-  const logicLevels = { beginner: 1, intermediate: 2, advanced: 3, expert: 4 };
-  if (!logicLevels[logicDifficulty]) throw new RangeError("Unknown logic difficulty.");
-  const meetsLogic = (board) => { const analysis = analyzeSolvability(board, firstIndex); return analysis.solvable && analysis.logicLevel === logicLevels[logicDifficulty]; };
+  const meetsLogic = (board) => isSolvableWithoutGuessing(board, firstIndex);
   if (typeof rng !== "function") throw new TypeError("The RNG must be a function.");
   if (!isIntegerInRange(maximumAttempts, 1, 1_000_000)) {
     throw new RangeError("Generation attempt limit is invalid.");
@@ -779,7 +764,7 @@ export function generateSolvableBoard(settings, firstIndex, options = {}) {
   }
 
   throw new GenerationError(
-    `Could not create a ${logicDifficulty} logic board after ${maximumAttempts} attempts. Try a lower logic tier or mine density.`,
+    `Could not create a solvable board after ${maximumAttempts} attempts. Try a lower mine density.`,
     "LOGIC_TARGET_UNREACHABLE",
   );
 }
@@ -1014,7 +999,6 @@ function isValidRestorableGame(game, elapsedMs) {
     return false;
   }
   if (!DIFFICULTIES[game.difficulty]) return false;
-  if (!["beginner", "intermediate", "advanced", "expert"].includes(game.logicDifficulty || "beginner")) return false;
   if (!Number.isInteger(elapsedMs) || elapsedMs < 0 || elapsedMs > 315_576_000_000) return false;
   if (!Array.isArray(game.cells) || game.cells.length !== game.columns * game.rows) return false;
   if (game.explodedIndex !== null) return false;
