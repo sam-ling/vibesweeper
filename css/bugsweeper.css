@@ -306,8 +306,8 @@ button {
 
 .toolbar-inner {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  width: min(700px, 100%);
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  width: min(840px, 100%);
   height: 46px;
   margin: 0 auto;
 }
