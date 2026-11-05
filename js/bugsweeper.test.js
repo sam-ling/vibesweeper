@@ -53,6 +53,9 @@ function testViewportDimensionsAndMineCounts() {
     difficulty: "easy",
   });
   assert.equal(calculateBoardSettings(1280, 670, "insane").mines, 84);
+  assert.deepEqual(calculateBoardSettings(800, 600, "hard", "S"), { columns: 8, rows: 8, mines: 12, difficulty: "hard" });
+  assert.deepEqual(calculateBoardSettings(800, 600, "easy", "XXL"), { columns: 24, rows: 24, mines: 80, difficulty: "easy" });
+  assert.throws(() => calculateBoardSettings(800, 600, "hard", "tiny"), /Unknown board size/);
   assert.throws(() => calculateBoardSettings(800, 600, "nightmare"), /Unknown difficulty/);
 }
 
