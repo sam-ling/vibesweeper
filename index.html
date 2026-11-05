@@ -131,7 +131,7 @@
       }"
     >
       <div class="toolbar-inner">
-        <div class="toolbar-slot"><label class="visually-hidden" for="board-size">Board size</label><select id="board-size" class="board-size-select" :value="boardSize" @change="chooseBoardSize($event.target.value)" aria-label="Board size"><option value="S">S</option><option value="M">M</option><option value="L">L</option><option value="XL">XL</option><option value="XXL">XXL</option></select></div><div class="toolbar-slot"><label class="visually-hidden" for="logic-level">Logic difficulty</label><select id="logic-level" class="board-size-select" :value="logicDifficulty" @change="chooseLogic($event.target.value)" aria-label="Logic difficulty"><option value="beginner">Beginner</option><option value="intermediate">Intermediate</option><option value="advanced">Advanced</option><option value="expert">Expert</option></select></div>
+        <div class="toolbar-slot"><label class="visually-hidden" for="board-size">Board size</label><select id="board-size" class="board-size-select" :value="boardSize" @change="chooseBoardSize($event.target.value)" aria-label="Board size"><option value="S">S</option><option value="M">M</option><option value="L">L</option><option value="XL">XL</option><option value="XXL">XXL</option></select></div>
         <div class="toolbar-slot difficulty" @click.outside="difficultyMenuOpen = false">
           <button
             type="button"
