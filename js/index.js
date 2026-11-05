@@ -543,7 +543,6 @@ document.addEventListener("alpine:init", () => {
           type: "generate",
           requestId,
           settings: {
-            logicDifficulty: this.logicDifficulty,
             columns: this.game.columns,
             rows: this.game.rows,
             mines: this.game.mineCount,
