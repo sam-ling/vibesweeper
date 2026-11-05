@@ -62,7 +62,7 @@ button {
 
 .app {
   display: grid;
-  grid-template-rows: minmax(0, 1fr) 100px;
+  grid-template-rows: minmax(0, 1fr) 90px;
   width: 100%;
   height: 100vh;
   height: 100dvh;
@@ -290,7 +290,7 @@ button {
 .toolbar {
   position: relative;
   z-index: 40;
-  height: 100px;
+  height: 90px;
   border-top: 1px solid #c9c9c4;
   background: var(--footer);
   padding-bottom: env(safe-area-inset-bottom, 0);
@@ -307,7 +307,7 @@ button {
 .toolbar-inner {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  width: min(720px, 100%);
+  width: min(700px, 100%);
   height: 46px;
   margin: 0 auto;
 }
