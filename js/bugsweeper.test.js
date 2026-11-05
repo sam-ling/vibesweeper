@@ -287,11 +287,25 @@ function testLargeBoardsAreSerialized() {
   assert.equal(restored.game.cells[1_249].state, CELL_STATE.FLAGGED);
 }
 
+
+function testLogicDifficultyIsIndependentAndPersisted() {
+  const easyLogic = generateSolvableBoard(settings(6, 6, 6, "insane"), 14, {
+    rng: createSeededRng(7331), maxAttempts: 500, logicDifficulty: "beginner",
+  });
+  assert.ok(analyzeSolvability(easyLogic, 14).solvable);
+  const game = createGame({ ...settings(6, 6, 6, "insane"), logicDifficulty: "advanced" });
+  assert.equal(game.difficulty, "insane");
+  assert.equal(game.logicDifficulty, "advanced");
+  assert.equal(deserializeGame(serializeGame(game, 0)).game.logicDifficulty, "advanced");
+  assert.throws(() => generateSolvableBoard(settings(4, 4, 3), 5, { logicDifficulty: "impossible", maxAttempts: 1 }), /Unknown logic/);
+}
+
 const tests = [
   testViewportDimensionsAndMineCounts,
   testAdjacencyValuesAndNeighbors,
   testDeterministicCandidateGeneration,
   testDeterministicVerifiedGeneration,
+  testLogicDifficultyIsIndependentAndPersisted,
   testFirstRevealAndOpeningNeighborSafety,
   testSolverAcceptanceAndRejectionWithoutMutation,
   testModelOperationsDoNotLeakMutations,
