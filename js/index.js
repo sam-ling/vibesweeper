@@ -62,7 +62,7 @@ function canPlaySound() {
 document.addEventListener("alpine:init", () => {
   window.Alpine.data("bugsweeper", () => ({
     appVersion: APP_VERSION,
-    game: createGame(viewportSettings("hard", this.boardSize)),
+    game: createGame(viewportSettings("hard")),
     difficulty: "hard",
     boardSize: "L",
     difficultyMenuOpen: false,
@@ -663,7 +663,10 @@ document.addEventListener("alpine:init", () => {
     },
 
     boardStyle() {
-      return `--columns:${this.game.columns};--cell-size:${this.cellSize}px`;
+      const availableWidth = Math.max(1, window.innerWidth - 24);
+      const availableHeight = Math.max(1, window.innerHeight - FOOTER_HEIGHT - 24);
+      const cellSize = Math.max(10, Math.min(this.cellSize, availableWidth / this.game.columns - 2, availableHeight / this.game.rows - 2));
+      return `--columns:${this.game.columns};--cell-size:${cellSize}px`;
     },
 
     cellClasses(cell, index) {
