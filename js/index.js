@@ -691,11 +691,12 @@ document.addEventListener("alpine:init", () => {
     },
 
     showBug(cell) {
-      return this.game.phase === GAME_PHASE.LOST && cell.mine && cell.state !== CELL_STATE.FLAGGED;
+      return cell.mine && cell.state !== CELL_STATE.FLAGGED &&
+        (this.game.phase === GAME_PHASE.LOST || this.game.phase === GAME_PHASE.WON);
     },
 
-    bugEmoji(cell, index) {
-      return index === this.game.explodedIndex ? "👎" : "🤙";
+    bugEmoji() {
+      return "💣";
     },
 
     showClue(cell) {
