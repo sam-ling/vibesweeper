@@ -197,6 +197,7 @@ export function createGame(settings) {
     rows: settings.rows,
     mineCount: settings.mines,
     difficulty: DIFFICULTIES[settings.difficulty] ? settings.difficulty : "hard",
+    logicDifficulty: ["beginner", "intermediate", "advanced", "expert"].includes(settings.logicDifficulty) ? settings.logicDifficulty : "beginner",
     generated: false,
     phase: GAME_PHASE.READY,
     explodedIndex: null,
@@ -1008,6 +1009,7 @@ function isValidRestorableGame(game, elapsedMs) {
     return false;
   }
   if (!DIFFICULTIES[game.difficulty]) return false;
+  if (!["beginner", "intermediate", "advanced", "expert"].includes(game.logicDifficulty || "beginner")) return false;
   if (!Number.isInteger(elapsedMs) || elapsedMs < 0 || elapsedMs > 315_576_000_000) return false;
   if (!Array.isArray(game.cells) || game.cells.length !== game.columns * game.rows) return false;
   if (game.explodedIndex !== null) return false;
