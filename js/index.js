@@ -233,7 +233,7 @@ document.addEventListener("alpine:init", () => {
       this.cellSize = preferredCellSize();
       this.outcomeAnnouncement = "";
       this.resizePromptOpen = false;
-      this.difficultyMenuOpen = false;
+      this.densityMenuOpen = false;
       this.baselineWidth = window.innerWidth;
       this.baselineHeight = window.innerHeight - FOOTER_HEIGHT;
       this.persistGame();
@@ -247,7 +247,7 @@ document.addEventListener("alpine:init", () => {
     },
 
     chooseDensity(value) {
-      this.difficultyMenuOpen = false;
+      this.densityMenuOpen = false;
       if (!DIFFICULTIES[value] || value === this.density) return;
       this.startFreshGame(value);
     },
@@ -643,7 +643,7 @@ document.addEventListener("alpine:init", () => {
       this.resizeWasRunning = this.timerHandle !== null;
       this.pauseTimer();
       this.resizePromptOpen = true;
-      this.difficultyMenuOpen = false;
+      this.densityMenuOpen = false;
       this.$nextTick(() => this.$refs.resizeReload?.focus());
     },
 
@@ -658,7 +658,7 @@ document.addEventListener("alpine:init", () => {
     acceptResizePrompt() {
       this.resizePromptOpen = false;
       this.resizeWasRunning = false;
-      this.startFreshGame(this.difficulty);
+      this.startFreshGame(this.density);
     },
 
     focusCell(index, columnDelta, rowDelta) {
