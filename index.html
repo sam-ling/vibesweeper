@@ -61,7 +61,7 @@
               @keydown.arrow-down.prevent="focusCell(index, 0, 1)"
             >
               <span class="fa fa-flag" x-show="showFlag(cell)" aria-hidden="true"></span>
-              <span class="fa fa-bug" x-show="showBug(cell)" aria-hidden="true"></span>
+              <span x-show="showBug(cell)" x-text="bugEmoji(cell, index)" aria-hidden="true"></span>
               <span x-show="showClue(cell)" x-text="cell.adjacent" aria-hidden="true"></span>
             </button>
           </template>
@@ -130,6 +130,7 @@
       }"
     >
       <div class="toolbar-inner">
+        <div class="toolbar-slot"><label class="visually-hidden" for="board-size">Board size</label><select id="board-size" class="board-size-select" :value="boardSize" @change="chooseBoardSize($event.target.value)" aria-label="Board size"><option value="S">S</option><option value="M">M</option><option value="L">L</option><option value="XL">XL</option><option value="XXL">XXL</option></select></div>
         <div class="toolbar-slot difficulty" @click.outside="difficultyMenuOpen = false">
           <button
             type="button"
@@ -194,7 +195,7 @@
           <button
             type="button"
             class="toolbar-button icon-button"
-            x-show="isActive && game.generated"
+            x-show="(isActive || game.phase === 'lost') && game.generated"
             :disabled="undosRemaining === 0"
             :aria-label="`Undo last move (${undosRemaining} remaining)`"
             :title="`Undo (${undosRemaining} remaining)`"
@@ -217,6 +218,13 @@
         <div class="toolbar-slot">
           <output class="toolbar-label timer" :aria-label="game.phase === 'lost' ? 'Correctly marked bugs' : 'Elapsed time'" x-text="timerLabel"></output>
         </div>
+      </div>
+      <div class="mobile-actions" aria-label="Game actions">
+        <button type="button" class="toolbar-button" @click="startFreshGame(difficulty)" aria-label="New board"><span class="fa fa-plus"></span><span>New</span></button>
+        <button type="button" class="toolbar-button" @click="restart()" aria-label="Replay board" :disabled="!lastBoard"><span class="fa fa-refresh"></span><span>Replay</span></button>
+        <button type="button" class="toolbar-button" @click="undo()" aria-label="Undo" :disabled="undosRemaining===0 || undoHistory.length===0"><span class="fa fa-undo"></span><span>Undo</span></button>
+        <button type="button" class="toolbar-button" @click="togglePause()" aria-label="Pause or resume" :disabled="isFinished || generating"><span class="fa fa-pause"></span><span>Pause</span></button>
+        <button type="button" class="toolbar-button" @click="shortcutsOpen=true" aria-label="Help"><span class="fa fa-question-circle"></span><span>Help</span></button>
       </div>
       <div class="keyboard-hints" aria-label="Keyboard shortcuts">N New · R Replay · U Undo · P Pause · ? Help</div>
     </footer>
