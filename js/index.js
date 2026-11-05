@@ -20,7 +20,6 @@ import {
 const STORAGE_KEY = "bugsweeper:game:v2";
 const SOUND_STORAGE_KEY = "vibesweeper:sound:v1";
 const BOARD_SIZE_STORAGE_KEY = "vibesweeper:size:v1";
-const LOGIC_STORAGE_KEY = "vibesweeper:logic:v1";
 const FOOTER_HEIGHT = 112;
 const RESIZE_THRESHOLD = 50;
 const LONG_PRESS_MS = 550;
@@ -65,7 +64,6 @@ document.addEventListener("alpine:init", () => {
     appVersion: APP_VERSION,
     game: createGame(viewportSettings("hard")),
     density: "hard",
-    logicDifficulty: "beginner",
     boardSize: "L",
     difficultyMenuOpen: false,
     paused: false,
@@ -125,7 +123,6 @@ document.addEventListener("alpine:init", () => {
     },
 
     get densityLabel() { return DIFFICULTIES[this.density].label; },
-    get logicLabel() { return ({ beginner: "Beginner", intermediate: "Intermediate", advanced: "Advanced", expert: "Expert" })[this.logicDifficulty]; },
 
     get timerLabel() {
       if (this.game.phase === GAME_PHASE.READY) return "0:00";
@@ -140,11 +137,9 @@ document.addEventListener("alpine:init", () => {
       try {
         this.soundOn = this.soundAvailable && window.localStorage.getItem(SOUND_STORAGE_KEY) === "on";
         this.boardSize = window.localStorage.getItem(BOARD_SIZE_STORAGE_KEY) || "L";
-        this.logicDifficulty = window.localStorage.getItem(LOGIC_STORAGE_KEY) || "beginner";
       } catch {
         this.soundOn = false;
         this.boardSize = "L";
-        this.logicDifficulty = "beginner";
       }
       if (this.soundAvailable) {
         Object.entries(SOUND_PATHS).forEach(([name, path]) => {
@@ -189,7 +184,6 @@ document.addEventListener("alpine:init", () => {
       }
       this.game = restored.game;
       this.density = restored.game.difficulty;
-      this.logicDifficulty = restored.game.logicDifficulty || "beginner";
       this.elapsedMs = restored.elapsedMs;
       this.cellSize = preferredCellSize();
       this.baselineWidth = window.innerWidth;
@@ -230,7 +224,6 @@ document.addEventListener("alpine:init", () => {
       this.undosRemaining = 3;
       this.density = density;
       this.game = createGame(viewportSettings(density, this.boardSize));
-      this.game.logicDifficulty = this.logicDifficulty;
       this.elapsedMs = 0;
       this.lastSavedSecond = -1;
       this.cellSize = preferredCellSize();
@@ -254,12 +247,6 @@ document.addEventListener("alpine:init", () => {
       if (!DIFFICULTIES[value] || value === this.density) return;
       this.startFreshGame(value);
     },
-    chooseLogic(value) {
-      if (!["beginner","intermediate","advanced","expert"].includes(value)) return;
-      this.logicDifficulty = value;
-      try { window.localStorage.setItem(LOGIC_STORAGE_KEY, value); } catch {}
-      this.startFreshGame(this.density);
-    },
 
     restart() {
       if (this.lastBoard && this.firstRevealIndex !== null) {
@@ -270,7 +257,6 @@ document.addEventListener("alpine:init", () => {
           rows: this.lastBoard.rows,
           mines: this.lastBoard.mineCount,
           difficulty: this.density,
-          logicDifficulty: this.logicDifficulty,
         });
         const generated = installGeneratedBoard(ready, this.lastBoard);
         this.game = revealCell(generated, this.firstRevealIndex).game;
@@ -552,7 +538,6 @@ document.addEventListener("alpine:init", () => {
             rows: this.game.rows,
             mines: this.game.mineCount,
             difficulty: this.game.difficulty,
-            logicDifficulty: this.logicDifficulty,
           },
           firstIndex,
         });
