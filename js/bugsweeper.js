@@ -776,7 +776,8 @@ export function generateSolvableBoard(settings, firstIndex, options = {}) {
   }
 
   throw new GenerationError(
-    `Could not create a ${logicDifficulty} logic board after ${maximumAttempts} attempts.`,
+    `Could not create a ${logicDifficulty} logic board after ${maximumAttempts} attempts. Try a lower logic tier or mine density.`,
+    "LOGIC_TARGET_UNREACHABLE",
   );
 }
 
