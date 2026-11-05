@@ -317,7 +317,7 @@ document.addEventListener("alpine:init", () => {
         this.shortcutsOpen = !this.shortcutsOpen;
       } else if (!event.shiftKey && key === "n") {
         event.preventDefault();
-        this.startFreshGame(this.difficulty);
+        this.startFreshGame(this.density);
       } else if (!event.shiftKey && key === "r") {
         event.preventDefault();
         this.restart();
@@ -543,10 +543,12 @@ document.addEventListener("alpine:init", () => {
           type: "generate",
           requestId,
           settings: {
+            logicDifficulty: this.logicDifficulty,
             columns: this.game.columns,
             rows: this.game.rows,
             mines: this.game.mineCount,
             difficulty: this.game.difficulty,
+            logicDifficulty: this.logicDifficulty,
           },
           firstIndex,
         });
