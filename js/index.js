@@ -18,7 +18,9 @@ import {
 } from "./bugsweeper.js";
 
 const STORAGE_KEY = "bugsweeper:game:v2";
-const FOOTER_HEIGHT = 70;
+const SOUND_STORAGE_KEY = "vibesweeper:sound:v1";
+const BOARD_SIZE_STORAGE_KEY = "vibesweeper:size:v1";
+const FOOTER_HEIGHT = 112;
 const RESIZE_THRESHOLD = 50;
 const LONG_PRESS_MS = 550;
 const MOVE_TOLERANCE = 12;
@@ -31,11 +33,12 @@ const SOUND_PATHS = Object.freeze({
   lost: "./sounds/game_error.mp3",
 });
 
-function viewportSettings(difficulty) {
+function viewportSettings(difficulty, boardSize = "L") {
   return calculateBoardSettings(
     window.innerWidth,
     Math.max(1, window.innerHeight - FOOTER_HEIGHT),
     difficulty,
+    boardSize,
   );
 }
 
@@ -59,8 +62,9 @@ function canPlaySound() {
 document.addEventListener("alpine:init", () => {
   window.Alpine.data("bugsweeper", () => ({
     appVersion: APP_VERSION,
-    game: createGame(viewportSettings("hard")),
+    game: createGame(viewportSettings("hard", this.boardSize)),
     difficulty: "hard",
+    boardSize: "L",
     difficultyMenuOpen: false,
     paused: false,
     shortcutsOpen: false,
@@ -75,7 +79,7 @@ document.addEventListener("alpine:init", () => {
     resizePromptOpen: false,
     resizeWasRunning: false,
     soundAvailable: false,
-    soundOn: true,
+    soundOn: false,
     elapsedMs: 0,
     undoHistory: [],
     undosRemaining: 3,
@@ -132,7 +136,13 @@ document.addEventListener("alpine:init", () => {
 
     init() {
       this.soundAvailable = canPlaySound();
-      this.soundOn = this.soundAvailable;
+      try {
+        this.soundOn = this.soundAvailable && window.localStorage.getItem(SOUND_STORAGE_KEY) === "on";
+        this.boardSize = window.localStorage.getItem(BOARD_SIZE_STORAGE_KEY) || "L";
+      } catch {
+        this.soundOn = false;
+        this.boardSize = "L";
+      }
       if (this.soundAvailable) {
         Object.entries(SOUND_PATHS).forEach(([name, path]) => {
           const audio = new Audio(path);
@@ -215,7 +225,7 @@ document.addEventListener("alpine:init", () => {
       this.undoHistory = [];
       this.undosRemaining = 3;
       this.difficulty = difficulty;
-      this.game = createGame(viewportSettings(difficulty));
+      this.game = createGame(viewportSettings(difficulty, this.boardSize));
       this.elapsedMs = 0;
       this.lastSavedSecond = -1;
       this.cellSize = preferredCellSize();
@@ -225,6 +235,13 @@ document.addEventListener("alpine:init", () => {
       this.baselineWidth = window.innerWidth;
       this.baselineHeight = window.innerHeight - FOOTER_HEIGHT;
       this.persistGame();
+    },
+
+    chooseBoardSize(value) {
+      if (!["S", "M", "L", "XL", "XXL"].includes(value) || value === this.boardSize) return;
+      this.boardSize = value;
+      try { window.localStorage.setItem(BOARD_SIZE_STORAGE_KEY, value); } catch {}
+      this.startFreshGame(this.difficulty);
     },
 
     chooseDifficulty(value) {
@@ -258,7 +275,7 @@ document.addEventListener("alpine:init", () => {
     },
 
     undo() {
-      if (this.undosRemaining <= 0 || this.undoHistory.length === 0 || this.generating || this.resizePromptOpen) return;
+      if (this.undosRemaining <= 0 || this.undoHistory.length === 0 || this.generating || this.resizePromptOpen || (this.isFinished && this.game.phase !== GAME_PHASE.LOST)) return;
       const wasPaused = this.paused;
       this.pauseTimer();
       const snapshot = this.undoHistory.pop();
@@ -342,6 +359,7 @@ document.addEventListener("alpine:init", () => {
 
     toggleSound() {
       this.soundOn = !this.soundOn;
+      try { window.localStorage.setItem(SOUND_STORAGE_KEY, this.soundOn ? "on" : "off"); } catch {}
     },
 
     applyAction(result) {
@@ -671,6 +689,10 @@ document.addEventListener("alpine:init", () => {
 
     showBug(cell) {
       return this.game.phase === GAME_PHASE.LOST && cell.mine && cell.state !== CELL_STATE.FLAGGED;
+    },
+
+    bugEmoji(cell, index) {
+      return index === this.game.explodedIndex ? "👎" : "🤙";
     },
 
     showClue(cell) {
