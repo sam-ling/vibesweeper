@@ -1,6 +1,6 @@
-# Bugsweeper
+# Vibesweeper
 
-Play [Bugsweeper](https://casualhacks.net/bugsweeper/), a full-screen Minesweeper variant whose boards are verified to be solvable without guessing.
+A full-screen Minesweeper variant whose boards are verified to be solvable without guessing.
 
 Fork of Ronilan's [Bugsweeper](https://ronilan.com/bugsweeper/).
 
