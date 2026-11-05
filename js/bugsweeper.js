@@ -759,7 +759,7 @@ export function generateSolvableBoard(settings, firstIndex, options = {}) {
   const logicDifficulty = options.logicDifficulty ?? "beginner";
   const logicLevels = { beginner: 1, intermediate: 2, advanced: 3, expert: 4 };
   if (!logicLevels[logicDifficulty]) throw new RangeError("Unknown logic difficulty.");
-  const meetsLogic = (board) => { const analysis = analyzeSolvability(board, firstIndex); return analysis.solvable && analysis.logicLevel <= logicLevels[logicDifficulty]; };
+  const meetsLogic = (board) => { const analysis = analyzeSolvability(board, firstIndex); return analysis.solvable && analysis.logicLevel === logicLevels[logicDifficulty]; };
   if (typeof rng !== "function") throw new TypeError("The RNG must be a function.");
   if (!isIntegerInRange(maximumAttempts, 1, 1_000_000)) {
     throw new RangeError("Generation attempt limit is invalid.");
