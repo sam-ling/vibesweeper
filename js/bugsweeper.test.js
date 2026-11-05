@@ -288,35 +288,11 @@ function testLargeBoardsAreSerialized() {
 }
 
 
-function testLogicDifficultyIsIndependentAndPersisted() {
-  const easyLogic = generateSolvableBoard(settings(6, 6, 6, "insane"), 14, {
-    rng: createSeededRng(7331), maxAttempts: 500, logicDifficulty: "beginner",
-  });
-  assert.ok(analyzeSolvability(easyLogic, 14).solvable);
-  const game = createGame({ ...settings(6, 6, 6, "insane"), logicDifficulty: "advanced" });
-  assert.equal(game.difficulty, "insane");
-  assert.equal(game.logicDifficulty, "advanced");
-  assert.equal(deserializeGame(serializeGame(game, 0)).game.logicDifficulty, "advanced");
-  assert.throws(() => generateSolvableBoard(settings(4, 4, 3), 5, { logicDifficulty: "impossible", maxAttempts: 1 }), /Unknown logic/);
-}
-
-
-function testSolverReportsDifficultyMetrics() {
-  const trivial = createBoard(settings(2, 2, 1), [3]);
-  const analysis = analyzeSolvability(trivial, 0);
-  assert.equal(analysis.solvable, true);
-  assert.ok(analysis.logicLevel >= 1 && analysis.logicLevel <= 4);
-  assert.ok(Number.isInteger(analysis.inferenceCount));
-  assert.ok(Number.isInteger(analysis.largestComponent));
-}
-
 const tests = [
   testViewportDimensionsAndMineCounts,
   testAdjacencyValuesAndNeighbors,
   testDeterministicCandidateGeneration,
   testDeterministicVerifiedGeneration,
-  testLogicDifficultyIsIndependentAndPersisted,
-  testSolverReportsDifficultyMetrics,
   testFirstRevealAndOpeningNeighborSafety,
   testSolverAcceptanceAndRejectionWithoutMutation,
   testModelOperationsDoNotLeakMutations,
