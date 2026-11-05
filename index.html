@@ -223,7 +223,7 @@
         <button type="button" class="toolbar-button" @click="startFreshGame(difficulty)" aria-label="New board"><span class="fa fa-plus"></span><span>New</span></button>
         <button type="button" class="toolbar-button" @click="restart()" aria-label="Replay board" :disabled="!lastBoard"><span class="fa fa-refresh"></span><span>Replay</span></button>
         <button type="button" class="toolbar-button" @click="undo()" aria-label="Undo" :disabled="undosRemaining===0 || undoHistory.length===0"><span class="fa fa-undo"></span><span>Undo</span></button>
-        <button type="button" class="toolbar-button" @click="togglePause()" aria-label="Pause or resume" :disabled="isFinished || generating"><span class="fa fa-pause"></span><span>Pause</span></button>
+        <button type="button" class="toolbar-button" @click="togglePause()" aria-label="Pause or resume" :disabled="isFinished || generating"><span class="fa" :class="paused ? 'fa-play' : 'fa-pause'"></span><span x-text="paused ? 'Resume' : 'Pause'"></span></button>
         <button type="button" class="toolbar-button" @click="shortcutsOpen=true" aria-label="Help"><span class="fa fa-question-circle"></span><span>Help</span></button>
       </div>
       <div class="keyboard-hints" aria-label="Keyboard shortcuts">N New · R Replay · U Undo · P Pause · ? Help</div>
