@@ -265,7 +265,7 @@ document.addEventListener("alpine:init", () => {
           columns: this.lastBoard.columns,
           rows: this.lastBoard.rows,
           mines: this.lastBoard.mineCount,
-          difficulty: this.difficulty,
+          difficulty: this.density,
         });
         const generated = installGeneratedBoard(ready, this.lastBoard);
         this.game = revealCell(generated, this.firstRevealIndex).game;
@@ -277,7 +277,7 @@ document.addEventListener("alpine:init", () => {
         this.startTimer();
         this.persistGame();
       } else {
-        this.startFreshGame(this.difficulty);
+        this.startFreshGame(this.density);
       }
     },
 
