@@ -63,7 +63,8 @@ document.addEventListener("alpine:init", () => {
   window.Alpine.data("bugsweeper", () => ({
     appVersion: APP_VERSION,
     game: createGame(viewportSettings("hard")),
-    difficulty: "hard",
+    density: "hard",
+    logicDifficulty: "beginner",
     boardSize: "L",
     difficultyMenuOpen: false,
     paused: false,
@@ -102,7 +103,7 @@ document.addEventListener("alpine:init", () => {
     audio: new Map(),
     beforeUnloadHandler: null,
 
-    get difficultyOptions() {
+    get densityOptions() {
       return Object.entries(DIFFICULTIES).map(([value, details]) => ({
         value,
         label: details.label,
@@ -122,9 +123,8 @@ document.addEventListener("alpine:init", () => {
       return remainingFlags(this.game);
     },
 
-    get difficultyLabel() {
-      return DIFFICULTIES[this.difficulty].label;
-    },
+    get densityLabel() { return DIFFICULTIES[this.density].label; },
+    get logicLabel() { return ({ beginner: "Beginner", intermediate: "Intermediate", advanced: "Advanced", expert: "Expert" })[this.logicDifficulty]; },
 
     get timerLabel() {
       if (this.game.phase === GAME_PHASE.READY) return "0:00";
@@ -185,7 +185,8 @@ document.addEventListener("alpine:init", () => {
         return false;
       }
       this.game = restored.game;
-      this.difficulty = restored.game.difficulty;
+      this.density = restored.game.difficulty;
+      this.logicDifficulty = restored.game.logicDifficulty || "beginner";
       this.elapsedMs = restored.elapsedMs;
       this.cellSize = preferredCellSize();
       this.baselineWidth = window.innerWidth;
@@ -216,7 +217,7 @@ document.addEventListener("alpine:init", () => {
       }
     },
 
-    startFreshGame(difficulty = this.difficulty) {
+    startFreshGame(density = this.density) {
       this.cancelGeneration();
       this.pauseTimer();
       this.paused = false;
@@ -224,8 +225,9 @@ document.addEventListener("alpine:init", () => {
       this.firstRevealIndex = null;
       this.undoHistory = [];
       this.undosRemaining = 3;
-      this.difficulty = difficulty;
-      this.game = createGame(viewportSettings(difficulty, this.boardSize));
+      this.density = density;
+      this.game = createGame(viewportSettings(density, this.boardSize));
+      this.game.logicDifficulty = this.logicDifficulty;
       this.elapsedMs = 0;
       this.lastSavedSecond = -1;
       this.cellSize = preferredCellSize();
@@ -241,13 +243,18 @@ document.addEventListener("alpine:init", () => {
       if (!["S", "M", "L", "XL", "XXL"].includes(value) || value === this.boardSize) return;
       this.boardSize = value;
       try { window.localStorage.setItem(BOARD_SIZE_STORAGE_KEY, value); } catch {}
-      this.startFreshGame(this.difficulty);
+      this.startFreshGame(this.density);
     },
 
-    chooseDifficulty(value) {
+    chooseDensity(value) {
       this.difficultyMenuOpen = false;
-      if (!DIFFICULTIES[value] || value === this.difficulty) return;
+      if (!DIFFICULTIES[value] || value === this.density) return;
       this.startFreshGame(value);
+    },
+    chooseLogic(value) {
+      if (!["beginner","intermediate","advanced","expert"].includes(value)) return;
+      this.logicDifficulty = value;
+      this.startFreshGame(this.density);
     },
 
     restart() {
