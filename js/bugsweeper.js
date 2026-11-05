@@ -625,6 +625,7 @@ export function analyzeSolvability(board, firstIndex, options = {}) {
       maximumNodes,
     );
     largestComponent = Math.max(largestComponent, inference.largestComponent || 0);
+    if (inference.safe.length || inference.mines.length) inferenceCount += 1;
     if (!inference.valid) return result(false, false, !inference.aborted, inference.frontier);
     if (inference.aborted) return result(false, true, false, inference.frontier);
 
