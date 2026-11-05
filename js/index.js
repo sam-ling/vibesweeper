@@ -127,7 +127,7 @@ document.addEventListener("alpine:init", () => {
     },
 
     get timerLabel() {
-      if (this.game.phase === GAME_PHASE.READY) return "-:--";
+      if (this.game.phase === GAME_PHASE.READY) return "0:00";
       if (this.game.phase === GAME_PHASE.LOST) {
         return `${Math.floor((correctFlagCount(this.game) / this.game.mineCount) * 100)}%`;
       }
