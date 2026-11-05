@@ -14,6 +14,7 @@ self.addEventListener("message", (event) => {
 
   try {
     const board = generateSolvableBoard(request.settings, request.firstIndex, {
+      logicDifficulty: request.settings.logicDifficulty || "beginner",
       onProgress(attempts) {
         const now = Date.now();
         if (attempts === 1 || now - lastProgressAt >= 150) {
