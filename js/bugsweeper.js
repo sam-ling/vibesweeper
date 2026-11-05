@@ -534,11 +534,12 @@ export function analyzeSolvability(board, firstIndex, options = {}) {
   let revealedSafeCount = 0;
   let inferenceCount = 0;
   let largestComponent = 0;
+  let globalCountDeductions = 0;
 
   function result(solvable, valid, exhaustive, frontier = []) {
     return {
       solvable,
-      logicLevel: inferenceCount <= 1 ? 1 : largestComponent <= 6 ? 2 : largestComponent <= 10 ? 3 : 4,
+      logicLevel: globalCountDeductions > 0 || largestComponent > 10 ? 4 : largestComponent > 6 ? 3 : inferenceCount > 1 ? 2 : 1,
       inferenceCount,
       largestComponent,
       valid,
@@ -586,6 +587,7 @@ export function analyzeSolvability(board, firstIndex, options = {}) {
 
     if (remainingMines === 0 || remainingMines === unknown.length) {
       inferenceCount += 1;
+      globalCountDeductions += 1;
       for (const index of unknown) {
         if (remainingMines === 0) {
           if (!revealKnownSafe(index)) return result(false, false, true);
